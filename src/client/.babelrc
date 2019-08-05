@@ -1,0 +1,15 @@
+{
+  "presets": [
+    "@babel/preset-env",
+    "@babel/preset-react",
+    "flow",
+    "stage-2",
+    "vue"
+  ],
+  "plugins": [
+    "@babel/proposal-class-properties",
+    "transform-class-properties",
+    "transform-function-bind",
+    "@babel/plugin-transform-runtime"
+  ]
+}

@@ -1,0 +1,10 @@
+/node_modules
+*.sw[po]
+/public/*bundle.js
+/public/*worker.js
+/server-store/config.json
+/server-store/backendDb.json
+/server-store/program/
+/.cargo
+.idea/
+.env

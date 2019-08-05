@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="100pt"
+   height="101pt"
+   viewBox="0 0 100 101"
+   version="1.1"
+   id="svg7"
+   sodipodi:docname="solana-logo.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata13">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs11" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1026"
+     id="namedview9"
+     showgrid="false"
+     inkscape:zoom="1.7524752"
+     inkscape:cx="66.666667"
+     inkscape:cy="67.333333"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg7" />
+  <path
+     inkscape:connector-curvature="0"
+     id="path2"
+     d="M 32.847656,44.363281 22.96875,34.316406 h 9.878906 z m 0,22.597657 H 22.96875 L 32.847656,56.917969 Z M 43.964844,44.363281 H 34.085938 V 34.316406 h 9.878906 z m 22.230468,0 H 56.316406 V 34.316406 h 9.878906 z m -11.113281,0 H 45.199219 V 34.316406 h 9.882812 z M 43.964844,66.960938 H 34.085938 V 56.917969 h 9.878906 z m 22.230468,0 H 56.316406 V 56.917969 h 9.878906 z m -11.113281,0 H 45.199219 V 56.917969 h 9.882812 z m 12.347657,0 V 56.917969 H 77.3125 Z M 77.3125,44.363281 H 67.429688 V 34.316406 Z m 0,11.296875 H 67.429688 V 45.617188 H 77.3125 Z M 43.964844,21.761719 H 34.085938 V 11.71875 h 9.878906 z m -11.117188,0 H 22.96875 L 32.847656,11.71875 Z m 33.347656,0 H 56.316406 V 11.71875 h 9.878906 z m -11.113281,0 H 45.199219 V 11.71875 h 9.882812 z m 12.347657,0 V 11.71875 H 77.3125 Z M 32.847656,33.0625 H 22.96875 V 23.019531 h 9.878906 z m 0,0"
+     style="fill:#00ffba;fill-opacity:1;fill-rule:evenodd;stroke:none" />
+</svg>
