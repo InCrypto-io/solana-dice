@@ -4,7 +4,7 @@ $ npm i
 ```
 ### Build the BPF C program
 ```sh
-$ V=1 make -C program-bpf
+$ V=1 make -C program-bpf-c
 ```
 or
 ```
