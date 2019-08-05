@@ -49,6 +49,8 @@ class Helper {
     );
 
     await this.fetchGamesList();
+
+    await this.ping();
   };
 
   accountChanged = async () => {
@@ -121,7 +123,12 @@ class Helper {
   handleConnectionError = (error) => {
     console.error(error);
     this.store.commit('UPDATE_CONNECTION_STATE', false);
-  }
+  };
+
+  ping = async  () => {
+    await this.connection.getSlot().catch(this.handleConnectionError);
+    setTimeout(this.ping, 3000);
+  };
 }
 
 const helper = new Helper();

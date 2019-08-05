@@ -22,6 +22,8 @@ class GamesProcessor {
     this.update().catch(this.handleError);
 
     this.requestAirdrop().catch(console.error);
+
+    this.ping();
   };
 
   handleError = async (error) => {
@@ -46,6 +48,8 @@ class GamesProcessor {
       this.fetchAllGames,
     );
     await this.update().catch(this.handleError);
+
+    await this.ping();
   };
 
   fetchGame = async gamePublicKey => {
@@ -240,6 +244,13 @@ class GamesProcessor {
     await this.connection
       .requestAirdrop(this.casinoAccount.publicKey, lamports)
       .catch();
+  };
+
+  ping = async  () => {
+    await this.connection.getSlot()
+      .then(()=>{
+        setTimeout(this.ping, 3000);
+      }).catch(this.handleError);
   };
 }
 

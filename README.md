@@ -1,10 +1,14 @@
+### Setup
+```sh
+$ npm i
+```
 ### Build the BPF C program
 ```sh
 $ V=1 make -C program-bpf
 ```
 or
 ```
-$ npm run build:bpf
+$ npm run build:bpf-с
 ```
 
 ### Run the WebApp Front End and Backend Server

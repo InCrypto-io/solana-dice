@@ -60,11 +60,12 @@
                             class="solana-animation">{{animationTxt}}</span>
                     <span>{{balance}}</span>
                 </div>
-                <el-button
+                <e-button
                         v-if="canMakeBet"
                         @click="makeBet"
                         class="btn-action">{{actionTxt}}
-                </el-button>
+                </e-button>
+                <span v-else class="warning-info">You need to fund your wallet</span>
                 <div class="bet-balance">
                     <img
                             class="token-logo"
@@ -350,6 +351,11 @@
         top: 12.5px;
     }
 
+    .warning-info {
+        color: #fff;
+        font-weight: 600;
+    }
+
     .game-footer {
         display: flex;
         align-items: center;
@@ -378,6 +384,7 @@
         color: #fff;
         flex: 1;
         white-space: nowrap;
+        text-align: center;
     }
 
     .solana-logo {
