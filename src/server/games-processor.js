@@ -5,6 +5,7 @@ import {sha256} from 'js-sha256';
 import {forEach, map} from 'lodash';
 import {url} from '../../url';
 import {sleep} from '../util/sleep';
+import {Dates} from '../util/Dates';
 
 class GamesProcessor {
   init = (connection, dashboard, casinoAccount) => {
@@ -13,6 +14,7 @@ class GamesProcessor {
     this.casinoAccount = casinoAccount;
     this.handleInstanceCount = 0;
     this.subscribtionsOnGames = {};
+    this.lastEventTime = Date.now();
 
     this.subscribtionId = this.connection.onAccountChange(
       this.dashboard.publicKey,
@@ -24,6 +26,8 @@ class GamesProcessor {
     this.requestAirdrop().catch(console.error);
 
     this.ping();
+
+    setTimeout(this.autoReconnect, 60 * 1000);
   };
 
   handleError = async (error) => {
@@ -73,6 +77,7 @@ class GamesProcessor {
   };
 
   fetchAllGames = async () => {
+    this.lastEventTime = Date.now();
     backendStore.haveFullHistory = false;
     await backendStore.save().catch(this.handleError);
 
@@ -102,6 +107,7 @@ class GamesProcessor {
   };
 
   _onAccountChange = async (accountInfo, publicKey) => {
+    this.lastEventTime = Date.now();
     await this.fetchGame(publicKey).catch(
       console.error,
     );
@@ -243,14 +249,21 @@ class GamesProcessor {
     const lamports = 300;
     await this.connection
       .requestAirdrop(this.casinoAccount.publicKey, lamports)
-      .catch();
+      .catch(console.error);
   };
 
-  ping = async  () => {
+  ping = async () => {
     await this.connection.getSlot()
-      .then(()=>{
+      .then(() => {
         setTimeout(this.ping, 3000);
       }).catch(this.handleError);
+  };
+
+  autoReconnect = () => { // because ws socket broke without errors
+    if (Dates.compare(Dates.convert(this.lastEventTime) + 60 * 1000, Date.now()) < 0) {
+      this.reconnect().catch(console.error);
+    }
+    setTimeout(this.autoReconnect, 30 * 1000);
   };
 }
 

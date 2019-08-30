@@ -8,12 +8,13 @@
         <table class="orders-table">
             <thead>
             <tr>
-                <!--<th>state</th>-->
+                <!--<th>State</th>-->
                 <th>Bettor</th>
                 <th>Roll Under</th>
                 <th>Bet</th>
                 <th>Roll</th>
                 <th>Payout</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -24,10 +25,29 @@
                 <td>{{order.player}}</td>
                 <td>{{order.rollUnder}}</td>
                 <td>{{order.betLamports}}</td>
-                <td>{{order.roll < 255 ? order.roll : ""}}</td>
-                <td class="payout">
+                <td>{{order.roll < 255 ? order.roll : ''}}</td>
+                <td class="payout" v-if="order.rewardLamports !== 0">
                     {{(order.rewardLamports !== 0 && order.roll < 255) ? order.rewardLamports : ''}}
                 </td>
+                <td class="withdraw" v-else-if="order.state === 'Withdraw'">
+                    {{order.betLamports}}
+                </td>
+                <td class="lose" v-else>
+                    {{(order.rewardLamports === 0 && order.roll < 255) ? `-${order.betLamports}` : ''}}
+                </td>
+                <div>
+                    <el-button
+                            v-if="sedSeedIsVisible(order.state, order.player)"
+                            @click="sedSeed(order.publicKey)"
+                            class="btn-action">SET SEED
+                    </el-button>
+                    <el-button
+                            v-if="withdrawIsVisible(order.state, order.player)"
+                            @click="withdraw(order.publicKey)"
+                            :disabled="withdrawIsDisabled(order.lockInSlot)"
+                            class="btn-action">WITHDRAW
+                    </el-button>
+                </div>
             </tr>
             </tbody>
         </table>
@@ -36,12 +56,36 @@
 
 <script>
   import {sortBy, reverse} from "lodash";
+  import helper from '@/client/program/helper';
+  import eventHub from '@/client/util/event';
 
   export default {
+    mounted() {
+      eventHub.$on('UPDATE_ORDERS', () => {
+        this.$forceUpdate()
+      });
+    },
     computed: {
       listGamesSorted() {
         return reverse(sortBy(this.$store.state.gamesList, ["numberGame"]));
       }
+    },
+    methods: {
+      withdraw(address) {
+        helper.makeWithdraw(address).catch(console.error);
+      },
+      sedSeed(address) {
+        helper.setSeed(address).catch(console.error);
+      },
+      sedSeedIsVisible(state, address) {
+        return state === "Hash" && address === this.$store.state.address;
+      },
+      withdrawIsVisible(state, address) {
+        return state !== "Reveal" && state !== "Withdraw" && address === this.$store.state.address;
+      },
+      withdrawIsDisabled(lockInSlot) {
+        return lockInSlot + 100 >= helper.currentSlot;
+      },
     }
   };
 </script>
@@ -99,8 +143,39 @@
     }
 
     .payout {
-        color: #02f292;
-        text-shadow: 0 0 5px #02f292;
+        color: #00FFAD;
+        text-shadow: 0 0 5px #00FFAD;
+    }
+
+    .lose {
+        color: #DE3162;
+        text-shadow: 0 0 5px #DE3162;
+    }
+
+    .withdraw {
+        color: #f29200;
+        text-shadow: 0 0 5px #f29200;
+    }
+    .btn-action {
+        height: 38px;
+        line-height: 1.5;
+        border: none;
+        outline: none;
+        font-weight: 600;
+        font-size: 12px;
+        background-color: #00FFAD;
+        cursor: pointer;
+        color: #000;
+        flex: 1;
+        white-space: nowrap;
+        text-align: center;
+        margin: 10px 5px 5px;
+    }
+
+    .btn-action:disabled {
+        background-color: #bbbbbb;
+        border-color: #9999bb;
+        color: #111;
     }
 </style>
 

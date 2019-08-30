@@ -7,7 +7,7 @@
  */
 
 import EventEmitter from 'event-emitter';
-import {Account, SystemProgram} from '@solana/web3.js';
+import {Account, SystemProgram, Transaction} from '@solana/web3.js';
 
 import {newAccountWithAirdrop} from '../util/new-account-with-airdrop';
 import {sendAndConfirmTransaction} from '../util/send-and-confirm-transaction';
@@ -79,6 +79,29 @@ export class Dashboard {
       ),
       dashboardAccount,
     };
+  }
+
+  async makeCasinoWithdraw(amount, casinoAccount) {
+    const transaction = new Transaction();
+    transaction.add({
+      keys: [
+        {pubkey: this.publicKey, isSigner: false, isDebitable: true},
+        {
+          pubkey: casinoAccount.publicKey,
+          isSigner: true,
+          isDebitable: true,
+        },
+      ],
+      programId: this.programId,
+      data: ProgramCommand.makeCasinoWithdraw(amount),
+    });
+
+    await sendAndConfirmTransaction(
+      'MakeCasinoWithdraw',
+      this.connection,
+      transaction,
+      casinoAccount,
+    );
   }
 
   /**

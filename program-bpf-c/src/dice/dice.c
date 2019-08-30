@@ -218,13 +218,13 @@ SOL_FN_PREFIX bool make_withdraw(
         sol_log("Error: player not sign transaction");
         return false;
     }
-    if (game->state != GameState_Bet) {
-        sol_log("Error: game state not  in bet");
+    if (game->state == GameState_Reveal || game->state == GameState_Withdraw) {
+        sol_log("Error: withdraw no allowed, wrong state");
         return false;
     }
     sol_log("lock state");
     sol_log_64(game->lock_in_slot, current_slot, current_slot - game->lock_in_slot, 0, 0);
-    if (current_slot - game->lock_in_slot < 10) {
+    if (current_slot - game->lock_in_slot < 100) {
         sol_log("Error: locked");
         return false;
     }
@@ -246,13 +246,30 @@ SOL_FN_PREFIX bool make_withdraw(
 }
 
 SOL_FN_PREFIX bool make_casino_withdraw(
-        Dashboard *dashboard,
-        Game *game,
-        SolKeyedAccount *casino,
-        CommandData const *cmd_data
-) {
-    sol_log("++++++make_casino_withdraw+++++++");
-    return false;
+        SolKeyedAccount* dashboard_account,
+        Dashboard* dashboard,
+        SolKeyedAccount* casino,
+        CommandData const* cmd_data)
+{
+    if (!casino->is_signer) {
+        sol_log("Error: casino not sign transaction");
+        return false;
+    }
+
+    if (SolPubkey_same(casino->key, &(dashboard->casino)) == false) {
+        sol_log("Error: wrong casino account");
+        return false;
+    }
+
+    if (*(dashboard_account->lamports) < cmd_data->casino_withdraw_amount) {
+        sol_log("Error: dashboard balance too low");
+        return false;
+    }
+
+    *(casino->lamports) += cmd_data->casino_withdraw_amount;
+    *(dashboard_account->lamports) -= cmd_data->casino_withdraw_amount;
+    sol_log("casino have withdraw");
+    return true;
 }
 
 extern bool entrypoint(const uint8_t *input) {
@@ -274,7 +291,7 @@ extern bool entrypoint(const uint8_t *input) {
     sol_log("Size of Game");
     sol_log_64(sizeof(Game), 0, 0, 0, 0);
 
-    sol_log("Size of Comand + CommandData");
+    sol_log("Size of Command + CommandData");
     sol_log_64(sizeof(uint32_t) + sizeof(CommandData), 0, 0, 0, 0);
 
     Command const cmd = *(uint32_t *) params.data;
@@ -306,7 +323,7 @@ extern bool entrypoint(const uint8_t *input) {
     }
 
     Game *game = NULL;
-    if (params.ka_num >= 2 && !game_deserialize(&ka[1], &game)) {
+    if (params.ka_num >= 3 && !game_deserialize(&ka[1], &game)) {
         sol_log("Error: invalid game account");
         return false;
     }
@@ -373,9 +390,9 @@ extern bool entrypoint(const uint8_t *input) {
                                  cmd_data);
         }
         case Command_Casino_Withdraw: {
-            SolKeyedAccount *casino = &ka[2];
-            return make_casino_withdraw(dashboard,
-                                        game,
+            SolKeyedAccount *casino = &ka[1];
+            return make_casino_withdraw(dashboard_account,
+                                        dashboard,
                                         casino,
                                         cmd_data);
         }

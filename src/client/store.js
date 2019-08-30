@@ -1,28 +1,49 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import {filter} from 'lodash';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    account: null,
+    address: '',
     balance: 0,
     gamesList: [],
-    stable: false,
+    messages: [],
   },
 
   mutations: {
-    UPDATE_ACCOUNT(state, account) {
-      state.account = account;
-    },
     UPDATE_BALANCE(state, balance) {
       state.balance = balance;
     },
     UPDATE_GAMES_LIST(state, gamesList) {
       state.gamesList = gamesList;
     },
-    UPDATE_CONNECTION_STATE(state, stable) {
-      state.stable = stable;
+    DISPATCH_ERROR(state, error) {
+      state.messages.push({
+        id: Number(Date.now()) * Math.random(),
+        type: 'error',
+        message: error.message,
+      });
+      if (state.messages.length > 5) {
+        state.messages.splice(0, 1);
+      }
+    },
+    DISPATCH_MESSAGE(state, message) {
+      state.messages.push({
+        id: Number(Date.now()) * Math.random(),
+        type: 'info',
+        message: message,
+      });
+      if (state.messages.length > 5) {
+        state.messages.splice(0, 1);
+      }
+    },
+    REMOVE_MESSAGE(state, id) {
+      state.messages = filter(state.messages, e => (e.id !== id));
+    },
+    UPDATE_ADDRESS(state, address) {
+      state.address = address;
     },
   },
 });

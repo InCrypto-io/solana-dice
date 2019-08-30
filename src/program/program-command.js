@@ -17,6 +17,7 @@ const Command = {
   SetSeed: 3,
   MakeReveal: 4,
   Withdraw: 5,
+  CasinoWithdraw: 6,
 };
 
 function zeroPad(command) {
@@ -48,7 +49,7 @@ export function makeBet(betLamports, rollUnder) {
   layout.encode(
     {
       command: Command.MakeBet,
-      betLamports,
+      betLamports: betLamports,
       rollUnder,
     },
     buffer,
@@ -131,6 +132,24 @@ export function initDashboard(casinoPublicKey) {
 
 export function makeWithdraw() {
   return commandWithNoArgs(Command.Withdraw);
+}
+
+export function makeCasinoWithdraw(amount) {
+  const layout = BufferLayout.struct([
+    BufferLayout.u32('command'),
+    BufferLayout.nu64('amount'),
+  ]);
+
+  const buffer = Buffer.alloc(layout.span);
+  layout.encode(
+    {
+      command: Command.CasinoWithdraw,
+      amount: amount,
+    },
+    buffer,
+  );
+  console.log('raw command data for makeReveal ', buffer.toString('hex'));
+  return zeroPad(buffer);
 }
 
 /**

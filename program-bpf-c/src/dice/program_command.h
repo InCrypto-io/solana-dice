@@ -65,8 +65,7 @@ typedef enum {
      * Used by Player X to advertise their game
      *
      * key[0] - dashboard account
-     * key[1] - game account
-     * key[2] - casino account
+     * key[1] - casino account
      *
      * CommandData: none
      */
@@ -86,5 +85,6 @@ typedef union {
     } bet;
     uint8_t seed[SEED_SIZE];
     uint8_t casino_seed_hash[HASH_SIZE];
+    uint64_t casino_withdraw_amount;
     SolPubkey key;
 } CommandData;

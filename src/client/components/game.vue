@@ -14,9 +14,11 @@
                                     v-model="solana"/>
                         </div>
                         <ul class="amount-rate">
+                            <li @click="setSOLANA(.2)">1/5</li>
                             <li @click="setSOLANA(.5)">1/2</li>
-                            <li @click="setSOLANA(1)">1X</li>
                             <li @click="setSOLANA(2)">2X</li>
+                            <li @click="setSOLANA(3)">3X</li>
+                            <li @click="setSOLANA(4)">4X</li>
                             <li @click="setSOLANA()">MAX</li>
                         </ul>
                     </div>
@@ -48,23 +50,11 @@
                 </ul>
             </div>
             <footer class="game-footer">
-                <div class="currentsolana-container">
-                    <img
-                            class="solana-lg"
-                            :src="solanaLogo"/>
-                    <span
-                            :class="{
-              'animateUp': this.showUpAnimation,
-              'animateDown': this.showDownAnimation
-            }"
-                            class="solana-animation">{{animationTxt}}</span>
-                    <span>{{balance}}</span>
-                </div>
-                <e-button
+                <el-button
                         v-if="canMakeBet"
                         @click="makeBet"
                         class="btn-action">{{actionTxt}}
-                </e-button>
+                </el-button>
                 <span v-else class="warning-info">You need to fund your wallet</span>
                 <div class="bet-balance">
                     <img
@@ -81,7 +71,7 @@
                 :min="2"/>
 
         <el-dialog
-                width="30%"
+                width="40%"
                 :visible.sync="showAbout">
             <p slot="title">How To Play</p>
             <ol>
@@ -94,6 +84,26 @@
                 from all players across the world.</p>
         </el-dialog>
 
+        <el-dialog
+                width="40%"
+                :visible.sync="showLoginForm">
+            <div class="login-form">
+                <p>Enter your address</p>
+                <input class="login-address-input" v-model="loginAddress" v-on:input="changeLoginAddress()"/>
+                <p/>
+                <p v-if="wrongLoginAddress">Wrong address, try get it from wallet</p>
+                <p/>
+                <el-button
+                        @click="login"
+                        class="btn-action">LOGIN
+                </el-button>
+                <p/>
+                <el-button
+                        @click="openWallet"
+                        class="btn-action">SHOW IN WALLET
+                </el-button>
+            </div>
+        </el-dialog>
     </section>
 </template>
 
@@ -102,18 +112,19 @@
   import tokenLogo from '@/client/assets/bet-token.png';
   import eventHub from '@/client/util/event';
   import helper from '@/client/program/helper';
+  import wallet from '../../util/wallet';
 
   export default {
     mounted() {
       eventHub.$on('ROLLUNDER_CHANGE', rollUnder => this.rollUnder = rollUnder);
       eventHub.$on('SHOW_ABOUT', () => this.showAbout = true);
+      eventHub.$on('SHOW_LOGIN_FORM', () => this.showLoginForm = true);
     },
 
     data() {
       return {
         solanaLogo: solanaLogo,
         tokenLogo,
-        defaultBet: 10,
         solana: 10,
         rollUnder: 50,
         currentSOLANA: 0,
@@ -125,7 +136,10 @@
         showSocial: false,
         animating: false,
         showUpAnimation: false,
-        showDownAnimation: false
+        showDownAnimation: false,
+        showLoginForm: false,
+        loginAddress: "",
+        wrongLoginAddress: false,
       };
     },
     methods: {
@@ -136,11 +150,37 @@
       checkBetAmount() {
       },
 
+      changeLoginAddress() {
+        this.wrongLoginAddress = false;
+      },
+
+      login() {
+        if (helper.updatePublicKey(this.loginAddress)) {
+          localStorage.setItem("USER_ADDRESS", this.loginAddress);
+          this.$store.commit('UPDATE_ADDRESS', this.loginAddress);
+          this.loginAddress = "";
+          this.showLoginForm = false;
+          this.wrongLoginAddress = false;
+        } else {
+          this.wrongLoginAddress = true;
+        }
+      },
+
+      openWallet() {
+        wallet.send(" ", "");
+      },
+
       setSOLANA(rate) {
-        const maxBet = this.balance > 50 ? this.balance - 50 : 0;
-        let solana = rate ? this.defaultBet * rate : maxBet;
+        const maxBet = this.balance > 100 ? this.balance - 100 : 0;
+        let bet = this.solana;
+        if (bet === 0) {
+          bet = 10;
+        }
+        let solana = rate ? bet * rate : maxBet;
         if (solana > maxBet) {
           solana = maxBet;
+        } else if (solana < 10) {
+          solana = 10;
         }
         this.solana = Number(solana).toFixed(0);
       },
@@ -172,14 +212,14 @@
       },
 
       payWin() {
-        return (this.solana * this.payOut).toFixed(0);
+        return Math.floor(this.solana * this.payOut).toFixed(0);
       },
 
-      account() {
-        if (!this.$store.state.account) {
+      address() {
+        if (!this.$store.state.address) {
           return false;
         }
-        return this.$store.state.account.publicKey.toBase58().length !== 0;
+        return this.$store.state.address.length !== 0;
       },
 
       balance() {
@@ -187,7 +227,7 @@
       },
 
       canMakeBet() {
-        return this.account && this.solana < this.balance;
+        return this.address && ((Number(this.solana) + 100) <= this.balance);
       }
     }
   };
@@ -204,7 +244,7 @@
     .form {
         width: 655px;
         border-radius: 5px;
-        font-size: 18px;
+        font-size: 12px;
         background-color: #4b4848;
         margin: 0 auto 20px auto;
         padding: 20px 30px;
@@ -253,7 +293,7 @@
         borde-radius: .3em;
         font-weight: 600;
         letter-spacing: .2px;
-        font-size: 18px;
+        font-size: 12px;
         outline: none;
         background-color: #4b4848;
         width: 177px;
@@ -354,13 +394,21 @@
     .warning-info {
         color: #fff;
         font-weight: 600;
+        height: 34px;
+        top: -38px;
+        vertical-align: center;
+        padding: .5rem 1rem;
+        line-height: 1.5;
     }
 
     .game-footer {
+        width: 100%;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         margin-top: 20px;
+        margin-bottom: -20px;
     }
 
     .game-footer > div {
@@ -371,17 +419,16 @@
     }
 
     .btn-action {
+        height: 38px;
+        line-height: 1.5;
+        border: none;
         outline: none;
-        letter-spacing: 3px;
         font-weight: 600;
-        font-size: 18px;
-        background-color: #00ffbb;
-        border-color: #00ffbb;
+        font-size: 12px;
+        background-color: #00FFAD;
         cursor: pointer;
         padding: .5rem 1rem;
-        line-height: 1.5;
-        border-radius: .3rem;
-        color: #fff;
+        color: #000;
         flex: 1;
         white-space: nowrap;
         text-align: center;
@@ -410,7 +457,6 @@
     .game >>> .el-dialog__header {
         font-weight: 700;
         text-align: center;
-        line-height: 1.5;
         letter-spacing: .5px;
         color: #fff;
         font-size: 1.25em;
@@ -474,8 +520,8 @@
 
     .solana-animation.animateUp {
         animation: fadeOutUp 3s;
-        color: #02f292;
-        text-shadow: 0 0 5px #02f292;
+        color: #00FFAD;
+        text-shadow: 0 0 5px #00FFAD;
     }
 
     .solana-animation.animateDown {
@@ -507,5 +553,25 @@
             transform: translate3d(0, 100%, 0);
         }
     }
+
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .login-address-input {
+        text-align: center;
+        border-width: 1px;
+        padding: 10px 12px;
+        borde-radius: .3em;
+        font-weight: 600;
+        letter-spacing: .2px;
+        font-size: 12px;
+        outline: none;
+        background-color: #4b4848;
+        color: #fff;
+    }
+
 </style>
 

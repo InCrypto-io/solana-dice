@@ -19,7 +19,7 @@ export class DiceGame {
   programId;
   dashboardPublicKey;
   gamePublicKey;
-  playerAccount;
+  playerPublicKey;
   casinoAccount;
   state;
   _ee;
@@ -30,7 +30,7 @@ export class DiceGame {
     programId,
     dashboardPublicKey,
     gamePublicKey,
-    playerAccount,
+    playerPublicKey,
     casinoAccount,
     subscribe,
   ) {
@@ -45,7 +45,7 @@ export class DiceGame {
       disconnected: false,
       connection,
       gamePublicKey,
-      playerAccount,
+      playerPublicKey,
       casinoAccount,
       programId,
       dashboardPublicKey,
@@ -54,18 +54,17 @@ export class DiceGame {
     });
   }
 
-  static async makeBet(
-    connection,
+  static makeBet(
     programId,
     dashboardPublicKey,
-    playerAccount,
+    playerPublicKey,
     betLamports,
     rollUnder,
   ) {
     const gameAccount = new Account();
-    const GAME_DATA_SIZE = 0xa0;
+    const GAME_DATA_SIZE = 0xa9;
     const transaction = SystemProgram.createAccount(
-      playerAccount.publicKey,
+      playerPublicKey,
       gameAccount.publicKey,
       betLamports + 50,
       GAME_DATA_SIZE, // data space
@@ -76,7 +75,7 @@ export class DiceGame {
       keys: [
         {pubkey: dashboardPublicKey, isSigner: false, isDebitable: true},
         {pubkey: gameAccount.publicKey, isSigner: false, isDebitable: true},
-        {pubkey: playerAccount.publicKey, isSigner: true, isDebitable: false},
+        {pubkey: playerPublicKey, isSigner: true, isDebitable: false},
         {
           pubkey: ProgramCommand.getSyscallCurrentPublicKey(),
           isSigner: false,
@@ -87,22 +86,10 @@ export class DiceGame {
       data: ProgramCommand.makeBet(betLamports, rollUnder),
     });
 
-    await sendAndConfirmTransaction(
-      'MakeBet',
-      connection,
+    return {
       transaction,
-      playerAccount,
-    );
-
-    return new DiceGame(
-      connection,
-      programId,
-      dashboardPublicKey,
-      gameAccount.publicKey,
-      playerAccount,
-      null,
-      true
-    );
+      gameAccount,
+    };
   }
 
   async setSeedHash(casinoSeedHash) {
@@ -129,14 +116,14 @@ export class DiceGame {
     );
   }
 
-  async setSeed(seed) {
+  setSeed(seed) {
     const transaction = new Transaction();
     transaction.add({
       keys: [
         {pubkey: this.dashboardPublicKey, isSigner: false, isDebitable: true},
         {pubkey: this.gamePublicKey, isSigner: false, isDebitable: true},
         {
-          pubkey: this.playerAccount.publicKey,
+          pubkey: this.playerPublicKey,
           isSigner: true,
           isDebitable: true,
         },
@@ -145,12 +132,7 @@ export class DiceGame {
       data: ProgramCommand.setSeed(seed),
     });
 
-    await sendAndConfirmTransaction(
-      'SetSeed',
-      this.connection,
-      transaction,
-      this.playerAccount,
-    );
+    return transaction;
   }
 
   async makeReveal(connection, dashboardPublicKey, playerPublicKey, seed) {
@@ -164,7 +146,7 @@ export class DiceGame {
           isSigner: true,
           isDebitable: false,
         },
-        {pubkey: playerPublicKey, isSigner: true, isDebitable: false},
+        {pubkey: playerPublicKey, isSigner: true, isDebitable: true},
       ],
       programId: this.programId,
       data: ProgramCommand.makeReveal(seed),
@@ -178,16 +160,16 @@ export class DiceGame {
     );
   }
 
-  async makeWithdraw() {
+  makeWithdraw() {
     const transaction = new Transaction();
     transaction.add({
       keys: [
         {pubkey: this.dashboardPublicKey, isSigner: false, isDebitable: false},
         {pubkey: this.gamePublicKey, isSigner: false, isDebitable: true},
         {
-          pubkey: this.playerAccount.publicKey,
+          pubkey: this.playerPublicKey,
           isSigner: true,
-          isDebitable: false,
+          isDebitable: true,
         },
         {
           pubkey: ProgramCommand.getSyscallCurrentPublicKey(),
@@ -199,12 +181,7 @@ export class DiceGame {
       data: ProgramCommand.makeWithdraw(),
     });
 
-    await sendAndConfirmTransaction(
-      'MakeWithdraw',
-      this.connection,
-      transaction,
-      this.playerAccount,
-    );
+    return transaction;
   }
 
   async updateGameState() {

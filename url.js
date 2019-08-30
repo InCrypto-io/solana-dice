@@ -1,10 +1,5 @@
-import {testnetChannelEndpoint} from '@solana/web3.js';
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
-export let url = process.env.LIVE
-  ? testnetChannelEndpoint(process.env.CHANNEL || 'beta')
-  : 'http://localhost:8899';
-
-
-export let backendURL = process.env.BACKEND_URL
-  ? process.env.BACKEND_URL
-  : 'http://127.0.0.1:9090';
+export let url = 'http://localhost:8899';
+export let backendURL = 'http://localhost:9090';
+export let walletURL = 'http://localhost:8081';

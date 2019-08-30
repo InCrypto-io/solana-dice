@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "8ea1d348-637e-4dea-bbb9-c95d999cba83",
+		"_postman_id": "f0a8ddde-ae2a-4d12-8f65-4eb4e547602b",
 		"name": "Dice",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -29,7 +29,7 @@
 			"response": []
 		},
 		{
-			"name": "Games",
+			"name": "balance",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -38,21 +38,103 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9090/config",
+					"raw": "http://localhost:9090/balance",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "9090",
 					"path": [
-						"config"
+						"balance"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "get hash",
+			"name": "deposit",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "1000",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:9090/deposit",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"deposit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "withdraw",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "password",
+							"value": "123",
+							"type": "text"
+						},
+						{
+							"key": "amount",
+							"value": "777",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:9090/withdraw",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9090",
+					"path": [
+						"withdraw"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "games",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -61,14 +143,14 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:9090/get_hash",
+					"raw": "http://localhost:9090/games",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "9090",
 					"path": [
-						"get_hash"
+						"games"
 					]
 				}
 			},

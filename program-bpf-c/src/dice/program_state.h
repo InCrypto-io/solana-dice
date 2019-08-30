@@ -24,10 +24,10 @@ typedef struct {
     uint8_t casino_seed_hash[HASH_SIZE];
     uint64_t lock_in_slot;
     uint64_t bet_lamports;
-    uint8_t roll_under;
+    uint32_t roll_under;
     SolPubkey previous_game_public_key;
     uint32_t number_of_game;
-    uint8_t roll;
+    uint32_t roll;
     uint64_t reward_lamports;
 } Game;
 

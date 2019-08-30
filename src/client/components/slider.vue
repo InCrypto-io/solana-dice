@@ -146,7 +146,7 @@ export default {
     bottom: 0;
     left: 0;
     background-color: #6EED9B;
-    box-shadow: 0 0 20px #02f292;
+    box-shadow: 0 0 20px #00FFAD;
     border-radius: 5px;
     transition: right ease 200ms;
   }

@@ -1,40 +1,42 @@
 <template>
-    <main
-            v-if="stable"
-            id="app">
+    <main id="app">
         <dice-header/>
+        <dice-message/>
         <dice-game/>
         <dice-orders/>
     </main>
-    <span v-else class="body-alert">Service is not available, try again later</span>
 </template>
 
 <script>
   import helper from "@/client/program/helper";
+  import eventHub from '@/client/util/event';
 
   export default {
     mounted() {
       helper.init(this.$store)
         .then(() => {
-          this.$store.commit('UPDATE_CONNECTION_STATE', true);
+          helper.updateCurrentSlot().then(() => {
+            eventHub.$emit('UPDATE_ORDERS');
+          });
+          if (localStorage.getItem("USER_ADDRESS")) {
+            if (helper.updatePublicKey(localStorage.getItem("USER_ADDRESS"))) {
+              this.$store.commit('UPDATE_ADDRESS', localStorage.getItem("USER_ADDRESS"));
+              helper.updateBalance().catch();
+            }
+          }
         })
         .catch((e) => {
           console.error(e);
-          this.$store.commit('UPDATE_CONNECTION_STATE', false);
-      });
+          this.$store.commit('DISPATCH_ERROR', e);
+        });
     },
 
     components: {
+      diceMessage: require('@/client/components/message').default,
       diceHeader: require('@/client/components/header').default,
       diceGame: require('@/client/components/game').default,
       diceOrders: require('@/client/components/orders').default
     },
-
-    computed: {
-      stable() {
-        return this.$store.state.stable;
-      }
-    }
   };
 </script>
 
@@ -44,8 +46,5 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         font-size: 16px;
-    }
-    .body-alert {
-        color: #fff;
     }
 </style>

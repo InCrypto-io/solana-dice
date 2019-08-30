@@ -21,18 +21,18 @@ export function deserializeGame(accountInfo, publicKey) {
     publicKeyLayout('player'),
     BufferLayout.blob(16, 'seed'),
     BufferLayout.blob(32, 'casinoSeedHash'),
-    BufferLayout.nu64('lockInSlot'),
-    BufferLayout.nu64('betLamports'),
-    BufferLayout.u8('rollUnder'),
+    BufferLayout.u32('lockInSlotPart1'),// 64 bit read by part
+    BufferLayout.u32('lockInSlotPart2'),
+    BufferLayout.u32('betLamportsPart1'),// 64 bit read by part
+    BufferLayout.u32('betLamportsPart2'),
+    BufferLayout.u32('rollUnder'),
     publicKeyLayout('previousGamePublicKey'),
-    BufferLayout.u32be('numberGame'),
-    BufferLayout.u32be('roll'),
-    BufferLayout.nu64be('rewardLamports'),
+    BufferLayout.u32('numberGame'),
+    BufferLayout.u32('roll'),
+    BufferLayout.u32('rewardLamportsPart1'), // 64 bit read by part
+    BufferLayout.u32('rewardLamportsPart2'),
   ]);
   const game = gameLayout.decode(accountInfo.data);
-
-  // console.log('accountInfo.data', accountInfo.data.toString('hex'));
-  // console.log('game', game);
 
   const gameStates = [
     'Uninitialized',
@@ -47,13 +47,13 @@ export function deserializeGame(accountInfo, publicKey) {
     player: new PublicKey(game.player),
     seed: game.seed,
     casinoSeedHash: game.casinoSeedHash,
-    lockInSlot: game.lockInSlot,
-    betLamports: game.betLamports,
+    lockInSlot: game.lockInSlotPart1 + (game.lockInSlotPart2 << 32),
+    betLamports: game.betLamportsPart1 + (game.betLamportsPart2 << 32),
     rollUnder: game.rollUnder,
     previousGamePublicKey: new PublicKey(game.previousGamePublicKey),
     numberGame: game.numberGame,
     roll: game.roll,
-    rewardLamports: game.rewardLamports,
+    rewardLamports: game.rewardLamportsPart1 + (game.rewardLamportsPart2 << 32),
     publicKey: publicKey,
   };
 }

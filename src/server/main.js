@@ -3,8 +3,9 @@ import {findDashboard} from './config';
 import {url} from '../../url';
 import {Connection} from '@solana/web3.js';
 import backendStore from './backend-store';
+import bodyParser from 'body-parser';
 import gamesProcessor from './games-processor';
-import {size} from 'lodash';
+import budget from './budget';
 
 (async () => {
   const port = process.env.PORT || 9090;
@@ -15,8 +16,11 @@ import {size} from 'lodash';
   const {dashboard, casinoAccount} = await findDashboard(connection);
 
   gamesProcessor.init(connection, dashboard, casinoAccount);
+  budget.init(connection, dashboard, casinoAccount);
 
-  app.use(function (req, res, next) {
+  app.use(bodyParser.urlencoded({extended: true}));
+
+  app.use(function(req, res, next) {
     res.append('Access-Control-Allow-Origin', ['*']);
     res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.append('Access-Control-Allow-Headers', 'Content-Type');
@@ -35,11 +39,42 @@ import {size} from 'lodash';
     res.send(backendStore.games);
   });
 
-  app.get('/count', (req, res) => {
-    res.send(String(size(backendStore.games)));
+  app.get('/balance', async (req, res) => {
+    res.send(await budget.getBalances());
   });
 
-  app.listen(port, function() {
+  const password = process.env['RPC_PASSWORD'] || '123';
+  app.post('/deposit', async (req, res) => {
+    if (req.body.password === password) {
+      const result = await budget.deposit(req.body.amount)
+        .then(() => ('ok'))
+        .catch(() => ('fail'));
+      res.send({
+        result,
+      });
+    } else {
+      res.status(403).send({
+        message: 'wrong password',
+      });
+    }
+  });
+
+  app.post('/withdraw', async (req, res) => {
+    if (req.body.password === password) {
+      const result = await budget.withdraw(req.body.amount)
+        .then(() => ('ok'))
+        .catch(() => ('fail'));
+      res.send({
+        result,
+      });
+    } else {
+      res.status(403).send({
+        message: 'wrong password',
+      });
+    }
+  });
+
+  app.listen(port, '0.0.0.0', function() {
     console.log(`app listening on port ${port}`);
   });
 })();

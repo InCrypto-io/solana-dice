@@ -1,22 +1,23 @@
-import {Account, Connection, PublicKey} from '@solana/web3.js';
+import {Connection, PublicKey} from '@solana/web3.js';
 import axios from 'axios';
 import {sha256} from 'js-sha256';
+
 import {sleep} from '../util/sleep';
 import {DiceGame} from '../../program/dice';
 import {url, backendURL} from '../../../url';
+import wallet from '../../util/wallet';
 
 class Helper {
   store = null;
-  account = null;
   connection = null;
+  publicKey = null;
   config = {};
+  currentSlot = 0;
 
   init = async store => {
     this.store = store;
 
     this.connection = new Connection(url);
-    this.account = new Account();
-    this.store.commit('UPDATE_ACCOUNT', this.account);
 
     const dataResult = await axios.request({
       timeout: 5000,
@@ -24,9 +25,9 @@ class Helper {
       baseURL: backendURL,
       url: '/config',
     }).catch(this.handleConnectionError);
-    if (dataResult.status !== 200) {
+    if (!dataResult || dataResult.status !== 200) {
       console.error(dataResult);
-      throw Error("can't resolve config");
+      throw Error('Can\'t connect to server, try again later');
     }
 
     this.config.casinoPublicKey = new PublicKey(
@@ -39,18 +40,9 @@ class Helper {
       dataResult.data.dashboardPublicKey,
     );
 
-    this.connection.onAccountChange(
-      this.account.publicKey,
-      this.accountChanged,
-    );
-    this.connection.onProgramAccountChange(
-      this.config.dashboardProgramID,
-      this.programChanged,
-    );
-
     await this.fetchGamesList();
 
-    await this.ping();
+    await this.updateCurrentSlot();
   };
 
   accountChanged = async () => {
@@ -60,6 +52,7 @@ class Helper {
   programChanged = async () => {
     await sleep(2000);
     await this.fetchGamesList();
+    await this.updateBalance().catch(this.handleConnectionError);
   };
 
   fetchGamesList = async () => {
@@ -69,13 +62,13 @@ class Helper {
       baseURL: backendURL,
       url: '/games',
     }).catch(this.handleConnectionError);
-    if (dataResult.status === 200) {
+    if (dataResult && dataResult.status === 200) {
       this.store.commit('UPDATE_GAMES_LIST', dataResult.data);
     }
   };
 
   updateBalance = async () => {
-    const balance = await this.connection.getBalance(this.account.publicKey)
+    const balance = await this.connection.getBalance(this.publicKey)
       .catch(this.handleConnectionError);
     this.store.commit('UPDATE_BALANCE', balance);
   };
@@ -83,7 +76,7 @@ class Helper {
   requestAirdrop = async () => {
     const lamports = 1000;
     await this.connection
-      .requestAirdrop(this.account.publicKey, lamports)
+      .requestAirdrop(this.publicKey, lamports)
       .catch(this.handleConnectionError);
     await this.updateBalance();
   };
@@ -91,29 +84,62 @@ class Helper {
   makeBet = async (betLamports, rollUnder) => {
     betLamports = Number(betLamports);
     rollUnder = Number(rollUnder);
-    const diceGame = await DiceGame.makeBet(
+    const {transaction} = await DiceGame.makeBet(
+      this.config.dashboardProgramID,
+      this.config.dashboardPublicKey,
+      this.publicKey,
+      betLamports,
+      rollUnder,
+    );
+
+    if (transaction) {
+      await wallet.confirm(transaction, `Make bet (${betLamports} lamports, roll under ${rollUnder})`);
+    }
+    await this.updateBalance();
+  };
+
+  setSeed = async (address) => {
+    const diceGame = new DiceGame(
       this.connection,
       this.config.dashboardProgramID,
       this.config.dashboardPublicKey,
-      this.account,
-      betLamports,
-      rollUnder,
-    ).catch(this.handleConnectionError);
+      new PublicKey(address),
+      this.publicKey,
+      null,
+      false,
+    );
 
-    await this.updateBalance();
+    await diceGame.updateGameState();
+    if (diceGame.state.state === 'Hash') {
+      const transaction = diceGame.setSeed(this.getRandomSeed());
 
-    if (diceGame) {
-      diceGame.onChange(async () => {
-        await sleep(3000);
-        await diceGame.updateGameState();
-        if (diceGame.state.state === 'Hash') {
-          await diceGame.setSeed(this.getRandomSeed()).catch(this.handleConnectionError);
-          await this.updateBalance();
-        }
-      });
-    } else {
-      console.error("have unprocessed game", diceGame);
+      if (transaction) {
+        await wallet.confirm(transaction, `Set seed`);
+      }
     }
+    await this.updateBalance();
+  };
+
+  makeWithdraw = async (address) => {
+    const diceGame = new DiceGame(
+      this.connection,
+      this.config.dashboardProgramID,
+      this.config.dashboardPublicKey,
+      new PublicKey(address),
+      this.publicKey,
+      null,
+      false,
+    );
+
+    await diceGame.updateGameState();
+    if (diceGame.state.state !== 'Reveal' && diceGame.state.state !== 'Withdraw') {
+      const transaction = diceGame.makeWithdraw();
+
+      if (transaction) {
+        await wallet.confirm(transaction, `Withdraw`);
+      }
+    }
+    await this.updateBalance();
   };
 
   getRandomSeed = () => {
@@ -122,12 +148,33 @@ class Helper {
 
   handleConnectionError = (error) => {
     console.error(error);
-    this.store.commit('UPDATE_CONNECTION_STATE', false);
+    this.store.commit('DISPATCH_ERROR', error);
   };
 
-  ping = async  () => {
-    await this.connection.getSlot().catch(this.handleConnectionError);
-    setTimeout(this.ping, 3000);
+  updateCurrentSlot = async () => {
+    this.currentSlot = await this.connection.getSlot().catch(this.handleConnectionError);
+    setTimeout(this.updateCurrentSlot, 3000);
+  };
+
+  updatePublicKey = (address) => {
+    this.publicKey = new PublicKey(address);
+
+    if (!this.publicKey || this.publicKey.toBase58() !== address) {
+      return false;
+    }
+
+    this.connection.onAccountChange(
+      this.publicKey,
+      this.accountChanged,
+    );
+    this.connection.onProgramAccountChange(
+      this.config.dashboardProgramID,
+      this.programChanged,
+    );
+
+    this.updateBalance().catch();
+
+    return true;
   };
 }
 
