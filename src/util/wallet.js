@@ -18,7 +18,7 @@ class Wallet {
           }, walletURL);
         } else if (this.requestType === 2) {
           this.walletWindow.postMessage({
-            method: 'confirmTX',
+            method: 'sendCustomTransaction',
             params: {
               description: option.description,
               format: 'JSON',
@@ -53,7 +53,7 @@ class Wallet {
             break;
           }
           case 'addFundsResponse':
-          case 'confirmTXResponse':
+          case 'sendCustomTransactionResponse':
             clearInterval(windowTracker);
             window.removeEventListener('message', listener);
             resolve(e.data.params);
@@ -77,7 +77,7 @@ class Wallet {
   transactionSerialize = (transaction) => {
     const results = [];
 
-    if (transaction.instructions) {
+    if (transaction && transaction.instructions) {
       transaction.instructions.map(instruction => {
         const result = {};
         const keys = [];

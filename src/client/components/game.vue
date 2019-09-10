@@ -55,7 +55,18 @@
                         @click="makeBet"
                         class="btn-action">{{actionTxt}}
                 </el-button>
-                <span v-else class="warning-info">You need to fund your wallet</span>
+                <button
+                        v-else-if="!address"
+                        @click="goToLoginForm"
+                        class="btn-action">LOGIN
+                </button>
+                <div v-else>
+                    <span class="warning-info">You need to fund your wallet</span>
+                    <button
+                            @click="requestAirdrop"
+                            class="btn-action">REQUEST AN AIRDROP
+                    </button>
+                </div>
                 <div class="bet-balance">
                     <img
                             class="token-logo"
@@ -73,22 +84,30 @@
         <el-dialog
                 width="40%"
                 :visible.sync="showAbout">
-            <p slot="title">How To Play</p>
-            <ol>
-                <li>1. Set your BET AMOUNT. This is the amount of SOLANA you will be wagering.</li>
-                <li>2. Adjust the slider to change your chance of winning.</li>
-                <li>3. Click ROLL DICE to place your bet.</li>
-                <li>4. If your number is lower than your ROLL UNDER TO WIN number, you win!</li>
-            </ol>
-            <p>You can view your balance next to the ROLL DICE button. The table below the slider bar shows recent bets
-                from all players across the world.</p>
+            <b slot="title">How To Play</b>
+            <pre class="instruction-pre">
+    1. Login with your wallet address. Get coins using the airdrop for playing on the Solana testnet.
+    2. Start game
+        - Set your BET AMOUNT. This is the amount of SOL you will be wagering.
+        - Adjust the slider to change your chance of winning.
+        - Click ROLL DICE to place your bet.
+    3. Finish game
+        - Set seed - you have to set a seed for honesty control og game.
+        - Withdraw - if the casino does not publish its seed for a long time or you do not want to continue the game, you can withdraw funds.
+        - If the result derived from both seed is lower than your ROLL UNDER TO WIN number, you win!
+            </pre>
+            <b class="instruction-pre">The table below the slider bar shows recent bets from all players across the world.</b>
         </el-dialog>
 
         <el-dialog
                 width="40%"
                 :visible.sync="showLoginForm">
             <div class="login-form">
-                <p>Enter your address</p>
+                <p>
+                    You have to copy your address from
+                    <a class="wallet-link" @click="openWallet" href="#">Solana wallet</a>
+                </p>
+                <p><b>Enter your address</b></p>
                 <input class="login-address-input" v-model="loginAddress" v-on:input="changeLoginAddress()"/>
                 <p/>
                 <p v-if="wrongLoginAddress">Wrong address, try get it from wallet</p>
@@ -98,10 +117,6 @@
                         class="btn-action">LOGIN
                 </el-button>
                 <p/>
-                <el-button
-                        @click="openWallet"
-                        class="btn-action">SHOW IN WALLET
-                </el-button>
             </div>
         </el-dialog>
     </section>
@@ -154,6 +169,10 @@
         this.wrongLoginAddress = false;
       },
 
+      requestAirdrop() {
+        helper.requestAirdrop().catch(console.error);
+      },
+
       login() {
         if (helper.updatePublicKey(this.loginAddress)) {
           localStorage.setItem("USER_ADDRESS", this.loginAddress);
@@ -164,6 +183,10 @@
         } else {
           this.wrongLoginAddress = true;
         }
+      },
+
+      goToLoginForm() {
+        eventHub.$emit('SHOW_LOGIN_FORM');
       },
 
       openWallet() {
@@ -477,7 +500,7 @@
     }
 
     .game >>> .el-dialog__body a {
-        color: #0191ee;
+        color: #00ffad;
         text-decoration: none;
     }
 
@@ -571,6 +594,12 @@
         outline: none;
         background-color: #4b4848;
         color: #fff;
+    }
+
+    .instruction-pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        word-break: break-word;
     }
 
 </style>
