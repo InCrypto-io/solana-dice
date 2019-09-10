@@ -92,8 +92,8 @@
         - Adjust the slider to change your chance of winning.
         - Click ROLL DICE to place your bet.
     3. Finish game
-        - Set seed - you have to set a seed for honesty control og game.
-        - Withdraw - if the casino does not publish its seed for a long time or you do not want to continue the game, you can withdraw funds.
+        - Set seed - you have to set a seed for honesty control of game.
+        - Withdraw - if the casino does not publish its seed for a long time (2 min) or you do not want to continue the game, you can withdraw funds.
         - If the result derived from both seed is lower than your ROLL UNDER TO WIN number, you win!
             </pre>
             <b class="instruction-pre">The table below the slider bar shows recent bets from all players across the world.</b>
