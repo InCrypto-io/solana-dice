@@ -53,7 +53,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.4",
     "@fortawesome/free-solid-svg-icons": "^5.3.1",
     "@fortawesome/vue-fontawesome": "^0.1.1",
-    "@solana/web3.js": "^0.19.2",
+    "@solana/web3.js": "^0.18.5",
     "axios": "^0.19.0",
     "body-parser": "^1.18.3",
     "buffer-layout": "^1.2.0",

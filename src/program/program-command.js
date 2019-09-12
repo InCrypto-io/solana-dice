@@ -156,5 +156,6 @@ export function makeCasinoWithdraw(amount) {
  * Public key that identifies the Tick Height SysCall Account Public Key
  */
 export function getSyscallCurrentPublicKey() {
-  return new PublicKey('SysvarC1ock11111111111111111111111111111111');
+  return new PublicKey('Sysca11Current11111111111111111111111111111');
+  // return new PublicKey('SysvarC1ock11111111111111111111111111111111');
 }
